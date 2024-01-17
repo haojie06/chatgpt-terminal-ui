@@ -19,6 +19,7 @@ impl<T: Stream<Item = StreamResult> + Unpin> CompletionStreamReader<T> {
         }
     }
 
+    /// get datas split by "\n\n" from event stream
     async fn get_datas_from_stream(&mut self) -> Result<(), OpenAIError> {
         if let Some(chunk) = self.stream.next().await {
             let chunk = chunk?;
@@ -36,10 +37,12 @@ impl<T: Stream<Item = StreamResult> + Unpin> CompletionStreamReader<T> {
         Ok(())
     }
 
+    /// convert to content reader
     pub fn to_content_reader(self) -> CompletionContentReader<T> {
         CompletionContentReader::new(self)
     }
 
+    /// get next chunk, until get a valid chunk (can be deserialize to CompletionChunk)
     pub async fn next_chunk(&mut self) -> Result<Option<CompletionChunk>, OpenAIError> {
         loop {
             if self.str_datas.is_empty() {
@@ -54,8 +57,8 @@ impl<T: Stream<Item = StreamResult> + Unpin> CompletionStreamReader<T> {
                 match serde_json::from_str::<CompletionChunk>(&data_str) {
                     Ok(chunk) => return Ok(Some(chunk)),
                     Err(_err) => {
-                        // 如果不能够成功解析，就继续读取下一个
-                        // eprintln!("parse chunk error: {} {}", err, data_str);
+                        // if parse error, just ignore this chunk
+                        // eprintln!("invalid chunk: {}", data_str);
                         continue;
                     }
                 }

@@ -38,8 +38,9 @@ impl OpenAIClient {
             .send()
             .await
             .unwrap();
-
-        println!("status: {}", resp.status());
+        if !resp.status().is_success() {
+            return Err(OpenAIError::HttpError(resp.status()));
+        }
         Ok(CompletionStreamReader::new(resp.bytes_stream()))
     }
 }

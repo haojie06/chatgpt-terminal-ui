@@ -4,6 +4,7 @@ use core::fmt;
 pub enum OpenAIError {
     RequestAPIError(String),
     ParseChunkError(String),
+    HttpError(reqwest::StatusCode),
 }
 
 impl fmt::Display for OpenAIError {
@@ -11,24 +12,12 @@ impl fmt::Display for OpenAIError {
         match self {
             OpenAIError::ParseChunkError(msg) => write!(f, "ParseChunkError: {}", msg),
             OpenAIError::RequestAPIError(msg) => write!(f, "RequestAPIError: {}", msg),
+            OpenAIError::HttpError(status) => write!(f, "HttpError: {}", status),
         }
     }
 }
 
 impl std::error::Error for OpenAIError {}
-
-impl From<OpenAIError> for std::io::Error {
-    fn from(err: OpenAIError) -> Self {
-        match err {
-            OpenAIError::ParseChunkError(msg) => {
-                std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
-            }
-            OpenAIError::RequestAPIError(msg) => {
-                std::io::Error::new(std::io::ErrorKind::Other, msg)
-            }
-        }
-    }
-}
 
 impl From<serde_json::Error> for OpenAIError {
     fn from(err: serde_json::Error) -> Self {

@@ -9,7 +9,6 @@ pub struct CompletionClient {
     openai_client: OpenAIClient,
 }
 
-// 程序对话client，负责和openai交互以及上下文的处理
 impl CompletionClient {
     pub fn new(openai_cfg: openai::OpenAIClientConfig) -> Self {
         Self {
@@ -17,7 +16,7 @@ impl CompletionClient {
         }
     }
 
-    // 一轮的对话，不记录上下文
+    /// ask a question, return a stream of answers
     pub async fn ask(
         &self,
         prompt: String,
@@ -39,8 +38,13 @@ impl CompletionClient {
         Ok(chunk_reader.to_content_reader())
     }
 
-    // 记录上下文对话
-    pub async fn chat(&self, prompt: String) -> Result<String, &dyn Error> {
+    /// chat with openai, return a stream of answers, maintain the context
+    pub async fn chat(
+        &self,
+        conversation_id: Option<String>,
+        prompt: String,
+        completion_model: openai::CompletionModel,
+    ) -> Result<String, &dyn Error> {
         unimplemented!()
     }
 }

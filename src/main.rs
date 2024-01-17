@@ -57,7 +57,9 @@ async fn main() {
                 .await
                 .unwrap();
             while let Some(content) = result_reader.next_content().await.unwrap() {
-                println!("{content}");
+                let bpe = tiktoken_rs::p50k_base().unwrap();
+                let tokens = bpe.encode_with_special_tokens(&content);
+                println!("{content} tokens len {}", tokens.len());
             }
         }
         Some(Commands::Test { list }) => {

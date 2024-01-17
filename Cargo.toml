@@ -14,5 +14,6 @@ ratatui = "0.25.0"
 reqwest = { version = "0.11.23", features = ["stream"] }
 serde = { version = "1.0.195", features = ["derive"] }
 serde_json = "1.0.111"
+tiktoken-rs = "0.5.8"
 tokio = { version = "1.35.1", features = ["full"] }
 toml = "0.8.8"
