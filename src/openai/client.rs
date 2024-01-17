@@ -16,7 +16,7 @@ pub struct OpenAIClient {
     pub api_key: String,
 }
 
-type StreamResult = Result<bytes::Bytes, reqwest::Error>;
+pub type StreamResult = Result<bytes::Bytes, reqwest::Error>;
 pub struct CompletionChunkReader<T>
 where
     T: Stream<Item = StreamResult> + Unpin,
@@ -125,7 +125,7 @@ impl OpenAIClient {
 
 #[cfg(test)]
 mod tests {
-    use crate::openai::model::CompletionMessage;
+    use crate::openai::model::{CompletionMessage, CompletionModel};
 
     use super::*;
     use std::env;
@@ -139,16 +139,10 @@ mod tests {
             api_key: openai_key,
         });
         let completion_request = CompletionRequest {
-            model: "gpt-3.5-turbo".to_string(),
+            model: CompletionModel::GPT3_5Turbo,
             messages: vec![
-                CompletionMessage {
-                    role: "system".to_string(),
-                    content: "You are a helpful assistant.".to_string(),
-                },
-                CompletionMessage {
-                    role: "user".to_string(),
-                    content: "hello world".to_string(),
-                },
+                CompletionMessage::default_system_message(),
+                CompletionMessage::new_user_message("hello world".to_string()),
             ],
             stream: true,
         };
