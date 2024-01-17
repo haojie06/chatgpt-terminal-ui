@@ -1,4 +1,4 @@
-mod client;
+mod engine;
 mod openai;
 
 use std::{fs::File, io::Read, path::PathBuf};
@@ -44,7 +44,7 @@ async fn main() {
         .read_to_string(&mut contents)
         .expect("read config file");
     let config: Config = toml::from_str(&contents).expect("parse config file");
-    let completion_client = client::Client::new(openai::OpenAIClientConfig {
+    let completion_client = engine::CompletionClient::new(openai::OpenAIClientConfig {
         api_key: config.openai_key,
         base_url: config.openai_base_url,
     });

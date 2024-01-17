@@ -5,12 +5,12 @@ use futures_util::Stream;
 
 use crate::openai::{self, CompletionContentReader, OpenAIClient, StreamResult};
 
-pub struct Client {
+pub struct CompletionClient {
     openai_client: OpenAIClient,
 }
 
 // 程序对话client，负责和openai交互以及上下文的处理
-impl Client {
+impl CompletionClient {
     pub fn new(openai_cfg: openai::OpenAIClientConfig) -> Self {
         Self {
             openai_client: OpenAIClient::new(openai_cfg),
@@ -54,7 +54,7 @@ mod tests {
     async fn test_ask() {
         let openai_key = env::var("OPENAI_KEY").expect("need OPENAI_KEY");
         let base_url = env::var("OPENAI_BASE_URL").ok();
-        let client = Client::new(openai::OpenAIClientConfig {
+        let client = CompletionClient::new(openai::OpenAIClientConfig {
             base_url: base_url,
             api_key: openai_key,
         });
