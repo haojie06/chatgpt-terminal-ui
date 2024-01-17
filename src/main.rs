@@ -1,10 +1,10 @@
 mod engine;
 mod openai;
-
-use std::{fs::File, io::Read, path::PathBuf};
+mod ui;
 
 use clap::{Parser, Subcommand};
 use serde::Deserialize;
+use std::{fs::File, io::Read, path::PathBuf};
 
 #[derive(Debug, Deserialize)]
 struct Config {
@@ -32,6 +32,7 @@ enum Commands {
         #[arg(short, long)]
         list: bool,
     },
+    UI {},
 }
 
 #[tokio::main]
@@ -65,6 +66,7 @@ async fn main() {
         Some(Commands::Test { list }) => {
             println!("test {}", list);
         }
+        Some(Commands::UI {}) => ui::start_ui().unwrap(),
         None => {
             println!("none");
         }
