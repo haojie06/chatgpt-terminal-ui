@@ -1,7 +1,7 @@
 use core::fmt;
-use std::str::FromStr;
-
 use serde::{Deserialize, Serialize};
+
+pub type StreamResult = Result<bytes::Bytes, reqwest::Error>;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub enum CompletionModel {

@@ -1,40 +1,9 @@
 mod conversation;
 use std::error::Error;
 
-use crate::openai::{self, CompletionChunkReader, OpenAIClient, StreamResult};
-use futures_util::stream::Stream;
+use futures_util::Stream;
 
-pub struct CompletionIterator<T>
-where
-    T: Stream<Item = StreamResult> + Unpin,
-{
-    chunk_reader: CompletionChunkReader<T>,
-    content: String,
-}
-
-impl<T> CompletionIterator<T>
-where
-    T: Stream<Item = StreamResult> + Unpin,
-{
-    pub fn new(chunk_reader: CompletionChunkReader<T>) -> Self {
-        Self {
-            chunk_reader,
-            content: String::new(),
-        }
-    }
-
-    pub async fn next_completion(&mut self) -> Result<String, Box<dyn Error>> {
-        unimplemented!()
-        // if let Some(chunk) = self.chunk_reader.next_chunk().await.unwrap() {
-        //     if let Some(ref delta_content) = chunk.choices.get(0).unwrap().delta.content {
-        //         self.content.push_str(delta_content);
-        //         println!("answer: {}", self.content);
-        //     }
-        // } else {
-        //     return None;
-        // }
-    }
-}
+use crate::openai::{self, CompletionContentReader, OpenAIClient, StreamResult};
 
 pub struct Client {
     openai_client: OpenAIClient,
@@ -53,7 +22,8 @@ impl Client {
         &self,
         prompt: String,
         completion_model: openai::CompletionModel,
-    ) -> Result<String, Box<dyn Error>> {
+    ) -> Result<CompletionContentReader<impl Stream<Item = StreamResult> + Unpin>, Box<dyn Error>>
+    {
         let completion_request = openai::CompletionRequest {
             model: completion_model,
             messages: vec![
@@ -62,22 +32,11 @@ impl Client {
             ],
             stream: true,
         };
-        let mut chunk_reader = self
+        let chunk_reader = self
             .openai_client
             .chat_completion_stream(completion_request)
-            .await
-            .unwrap();
-        let mut answer = String::new();
-        while let Some(chunk) = chunk_reader.next_chunk().await.unwrap() {
-            if chunk.choices.is_empty() {
-                continue;
-            }
-            if let Some(ref delta_content) = chunk.choices.get(0).unwrap().delta.content {
-                answer.push_str(delta_content);
-                println!("answer: {}", answer);
-            }
-        }
-        answer
+            .await?;
+        Ok(chunk_reader.to_content_reader())
     }
 
     // 记录上下文对话
@@ -99,11 +58,15 @@ mod tests {
             base_url: base_url,
             api_key: openai_key,
         });
-        client
+        let mut content_reader = client
             .ask(
                 "hello, who are you?".to_string(),
                 openai::CompletionModel::GPT3_5Turbo,
             )
-            .await;
+            .await
+            .unwrap();
+        while let Some(content) = content_reader.next_content().await.unwrap() {
+            println!("content: {}", content);
+        }
     }
 }
